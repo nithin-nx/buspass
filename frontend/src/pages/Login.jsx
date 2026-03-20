@@ -34,7 +34,17 @@ const Login = () => {
                         margin: '0 auto 20px', boxShadow: '0 8px 16px rgba(0, 86, 179, 0.2)'
                     }}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="4" y="9" width="16" height="11" rx="2"/><path d="M8 2h8a2 2 0 0 1 2 2v5H6V4a2 2 0 0 1 2-2z"/><circle cx="8" cy="15" r="1"/><circle cx="16" cy="15" r="1"/><path d="M11 2v5"/><path d="M13 2v5"/>
+                            <path d="M4 17h1" />
+                            <path d="M8 17h8" />
+                            <path d="M19 17h1" />
+                            <path d="M16 6H4a2 2 0 0 0-2 2v7h1" />
+                            <path d="M16 6h2s1.5.5 2.5 1.5S22 10 22 12v3h-1" />
+                            <circle cx="6.5" cy="17" r="2.5" />
+                            <circle cx="17.5" cy="17" r="2.5" />
+                            <path d="M7 6v6" />
+                            <path d="M11 6v6" />
+                            <path d="M15 6v6" />
+                            <path d="M2 11h20" />
                         </svg>
                     </div>
                     <h2 className="auth-title">BusID+ Portal</h2>
@@ -72,12 +82,12 @@ const Login = () => {
                 <div className="separator" style={{ margin: '32px 0' }}></div>
                 
                 <div className="text-center">
-                    <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '16px' }}>Need a new bus pass?</p>
-                    <Link to="/register" className="btn btn-secondary w-full" style={{ textDecoration: 'none' }}>
-                        Register Student Account
-                    </Link>
-                    <div style={{ marginTop: '20px', fontSize: '12px' }}>
-                        <Link to="/register-admin" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '16px' }}>Need a new account?</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <Link to="/register" className="btn btn-secondary w-full" style={{ textDecoration: 'none' }}>
+                            Register Student Account
+                        </Link>
+                        <Link to="/register-admin" className="btn btn-outline-secondary w-full" style={{ textDecoration: 'none' }}>
                             Admin Registration
                         </Link>
                     </div>

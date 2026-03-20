@@ -38,8 +38,18 @@ const Sidebar = () => {
         <div className="sidebar">
             <div className="sidebar-logo">
                 <div className="logo-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="4" y="9" width="16" height="11" rx="2"/><path d="M8 2h8a2 2 0 0 1 2 2v5H6V4a2 2 0 0 1 2-2z"/><circle cx="8" cy="15" r="1"/><circle cx="16" cy="15" r="1"/><path d="M11 2v5"/><path d="M13 2v5"/>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 17h1" />
+                        <path d="M8 17h8" />
+                        <path d="M19 17h1" />
+                        <path d="M16 6H4a2 2 0 0 0-2 2v7h1" />
+                        <path d="M16 6h2s1.5.5 2.5 1.5S22 10 22 12v3h-1" />
+                        <circle cx="6.5" cy="17" r="2.5" />
+                        <circle cx="17.5" cy="17" r="2.5" />
+                        <path d="M7 6v6" />
+                        <path d="M11 6v6" />
+                        <path d="M15 6v6" />
+                        <path d="M2 11h20" />
                     </svg>
                 </div>
                 <div className="logo-text">BusID<span>+</span></div>

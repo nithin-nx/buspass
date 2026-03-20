@@ -244,6 +244,17 @@ body {
   background-color: #dfe4ea;
 }
 
+.btn-outline-secondary {
+  background-color: transparent;
+  color: var(--secondary);
+  border: 1px solid var(--border);
+}
+
+.btn-outline-secondary:hover {
+  background-color: #f8f9fa;
+  border-color: var(--secondary);
+}
+
 /* ─── TABLES ─── */
 .table-wrap {
   width: 100%;

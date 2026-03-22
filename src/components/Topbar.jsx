@@ -3,7 +3,7 @@ import { supabase } from '../supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 
-const Topbar = () => {
+const Topbar = ({ onMenuClick }) => {
     const { user } = useAuth();
     const [notifCount, setNotifCount] = useState(0);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -25,7 +25,7 @@ const Topbar = () => {
                 event: '*', 
                 schema: 'public', 
                 table: 'notifications',
-                filter: `user_id=eq.${user.id}`
+                filter: `user_id=eq.${user?.id}`
             }, () => fetchNotifs())
             .subscribe();
 
@@ -100,7 +100,12 @@ const Topbar = () => {
 
     return (
         <div className="topbar">
-            <div className="topbar-title">BusID<span style={{ color: 'var(--primary)' }}>+</span> Portal</div>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+                <button className="menu-btn" onClick={onMenuClick}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </button>
+                <div className="topbar-title">BusID<span style={{ color: 'var(--primary)' }}>+</span> Portal</div>
+            </div>
             
             <div className="topbar-actions" ref={dropdownRef}>
                 {/* NOTIFICATION BELL */}
@@ -122,15 +127,15 @@ const Topbar = () => {
 
                 {/* NOTIFICATION DROPDOWN */}
                 {isDropdownOpen && (
-                    <div className="glass-panel" style={{ 
-                        position: 'absolute', top: '70px', right: '20px', width: '350px', 
-                        maxHeight: '500px', overflowY: 'auto', zIndex: 1000, 
-                        borderRadius: '24px', padding: '0', background: 'rgba(255, 255, 255, 0.95)',
-                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid rgba(0,0,0,0.05)'
+                    <div style={{ 
+                        position: 'absolute', top: '70px', right: '0', width: 'min(380px, 90vw)', 
+                        maxHeight: '520px', overflowY: 'auto', zIndex: 1000, 
+                        borderRadius: '16px', padding: '0', background: 'white',
+                        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)', border: '1px solid var(--border)'
                     }}>
                         <div style={{ padding: '20px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <h4 style={{ margin: 0, fontWeight: 800 }}>Center</h4>
-                            {user.role === 'admin' && (
+                            {user?.role === 'admin' && (
                                 <button 
                                     className="btn btn-primary" 
                                     style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '8px' }}
@@ -141,7 +146,7 @@ const Topbar = () => {
                             )}
                         </div>
 
-                        {showAnnounceForm && user.role === 'admin' && (
+                        {showAnnounceForm && user?.role === 'admin' && (
                             <form onSubmit={handleAddAnnouncement} style={{ padding: '20px', background: '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
                                 <input 
                                     type="text" 
@@ -167,10 +172,10 @@ const Topbar = () => {
                         <div className="notif-list">
                             {/* Announcements First */}
                             {announcements.map(ann => (
-                                <div key={ann.id} style={{ padding: '16px 20px', background: 'rgba(58, 123, 213, 0.05)', borderBottom: '1px solid #f1f5f9' }}>
+                                <div key={ann.id} style={{ padding: '16px 20px', background: '#f0f9ff', borderBottom: '1px solid #e0f2fe' }}>
                                     <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
                                         <div style={{ background: 'var(--primary)', color: 'white', padding: '4px', borderRadius: '6px', fontSize: '12px' }}>📢</div>
-                                        <div>
+                                        <div style={{ flex: 1 }}>
                                             <div style={{ fontWeight: 700, fontSize: '14px', color: '#1e293b' }}>{ann.title}</div>
                                             <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>{ann.content}</div>
                                             <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '6px', fontWeight: 600 }}>ANNOUNCEMENT • {new Date(ann.created_at).toLocaleDateString()}</div>
@@ -186,7 +191,7 @@ const Topbar = () => {
                                     onClick={() => handleMarkAsRead(notif.id)}
                                     style={{ 
                                         padding: '16px 20px', borderBottom: '1px solid #f1f5f9', cursor: 'pointer',
-                                        background: notif.is_read ? 'transparent' : 'rgba(124, 58, 237, 0.03)'
+                                        background: notif.is_read ? 'white' : '#f5f3ff'
                                     }}
                                 >
                                     <div style={{ fontWeight: 700, fontSize: '14px', color: notif.is_read ? '#64748b' : '#1e293b' }}>{notif.message}</div>
@@ -212,19 +217,18 @@ const Topbar = () => {
                         width: '36px', height: '36px', background: 'var(--bg-gradient)', 
                         borderRadius: '10px', display: 'flex', alignItems: 'center', 
                         justifyContent: 'center', color: 'white', fontWeight: '800', fontSize: '14px',
-                        overflow: 'hidden'
+                        overflow: 'hidden', flexShrink: 0
                     }}>
-                        {user.avatar ? (
+                        {user?.avatar ? (
                             <img src={user.avatar} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         ) : (
-                            user.name?.charAt(0).toUpperCase()
+                            user?.name?.charAt(0).toUpperCase()
                         )}
                     </div>
-                    <div>
-                        <div style={{ fontWeight: 700, fontSize: '14px', color: '#1e293b' }}>{user.name}</div>
-                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>{user.role}</div>
+                    <div style={{ display: 'none' }} className="user-details-desktop">
+                        <div style={{ fontWeight: 700, fontSize: '14px', color: '#1e293b' }}>{user?.name}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>{user?.role}</div>
                     </div>
-                    <div style={{ marginLeft: '10px', fontSize: '10px', color: '#94a3b8' }}>⚙️</div>
                 </Link>
             </div>
         </div>

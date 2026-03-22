@@ -21,7 +21,7 @@ const Profile = () => {
                     <input type="text" className="form-input" value={user.email} readOnly />
                 </div>
                 <div className="form-group">
-                    <label className="form-label">ID / Roll No</label>
+                    <label className="form-label">ID / Reg No</label>
                     <input type="text" className="form-input" value={user.id} readOnly />
                 </div>
             </div>

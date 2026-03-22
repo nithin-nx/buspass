@@ -153,7 +153,7 @@ const Passes = () => {
                                             
                                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                                                 <div>
-                                                    <div style={{ fontSize: '9px', fontWeight: '800', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>ROLL NO</div>
+                                                    <div style={{ fontSize: '9px', fontWeight: '800', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>REG NO</div>
                                                     <div style={{ fontSize: '13px', fontWeight: '700' }}>{pass.roll_no}</div>
                                                 </div>
                                                 <div>
@@ -182,15 +182,15 @@ const Passes = () => {
                                         </div>
                                         {/* QR Code */}
                                         <div style={{ 
-                                            padding: '6px', 
+                                            padding: '8px', 
                                             background: 'white', 
-                                            borderRadius: '10px', 
-                                            boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
+                                            borderRadius: '12px', 
+                                            boxShadow: '0 4px 15px rgba(0,0,0,0.4)',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center'
                                         }}>
-                                            <QRCodeSVG value={window.location.origin + '/verify-pass/' + pass.id} size={54} />
+                                            <QRCodeSVG value={window.location.origin + '/verify-pass/' + pass.id} size={72} />
                                         </div>
                                     </div>
                                 </div>

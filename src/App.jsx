@@ -26,6 +26,22 @@ const ProtectedRoute = ({ children }) => {
     return children;
 };
 
+const MainLayout = ({ children }) => {
+    const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+
+    return (
+        <div className="app">
+            <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+            <div className="main-content">
+                <Topbar onMenuClick={() => setIsOpen(!isSidebarOpen)} />
+                <div className="page">
+                    {children}
+                </div>
+            </div>
+        </div>
+    );
+};
+
 function App() {
     return (
         <AuthProvider>
@@ -40,26 +56,18 @@ function App() {
                         path="/*" 
                         element={
                             <ProtectedRoute>
-                                <div className="app">
-                                    <Sidebar />
-                                    <div className="main-content">
-                                        <Topbar />
-                                        <div className="page">
-                                            <Routes>
-                                                <Route path="/dashboard" element={<Dashboard />} />
-                                                <Route path="/apply" element={<Apply />} />
-                                                <Route path="/applications" element={<Applications />} />
-                                                <Route path="/routes" element={<ManageRoutes />} />
-                                                <Route path="/users" element={<ApprovedStudents />} />
-                                                <Route path="/profile" element={<Profile />} />
-                                                <Route path="/settings" element={<Settings />} />
-                                                <Route path="/passes" element={<Passes />} />
-                                                <Route path="/verify" element={<Verify />} />
-                                                <Route path="*" element={<Navigate to="/dashboard" />} />
-                                            </Routes>
-                                        </div>
-                                    </div>
-                                </div>
+                                <Routes>
+                                    <Route path="/dashboard" element={<MainLayout><Dashboard /></MainLayout>} />
+                                    <Route path="/apply" element={<MainLayout><Apply /></MainLayout>} />
+                                    <Route path="/applications" element={<MainLayout><Applications /></MainLayout>} />
+                                    <Route path="/routes" element={<MainLayout><ManageRoutes /></MainLayout>} />
+                                    <Route path="/users" element={<MainLayout><ApprovedStudents /></MainLayout>} />
+                                    <Route path="/profile" element={<MainLayout><Profile /></MainLayout>} />
+                                    <Route path="/settings" element={<MainLayout><Settings /></MainLayout>} />
+                                    <Route path="/passes" element={<MainLayout><Passes /></MainLayout>} />
+                                    <Route path="/verify" element={<MainLayout><Verify /></MainLayout>} />
+                                    <Route path="*" element={<Navigate to="/dashboard" />} />
+                                </Routes>
                             </ProtectedRoute>
                         } 
                     />

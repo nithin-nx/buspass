@@ -43,7 +43,11 @@ const Settings = () => {
         <div className="page">
             <div className="card" style={{ maxWidth: '800px', margin: '0 auto' }}>
                 <h2 className="card-title">Profile Settings</h2>
-                <p className="card-sub">Update your personal information and student details.</p>
+                <p className="card-sub">
+                    {user.role === 'admin' 
+                        ? 'Update your administrative profile and contact details.' 
+                        : 'Update your personal information and student details.'}
+                </p>
 
                 {message.text && (
                     <div className={`alert alert-${message.type}`} style={{ marginBottom: '20px' }}>
@@ -79,15 +83,14 @@ const Settings = () => {
 
                     <div className="grid-2">
                         <div className="form-group">
-                            <label className="form-label">Roll Number</label>
+                            <label className="form-label">{user.role === 'admin' ? 'Designation' : 'Roll Number'}</label>
                             <input 
                                 type="text" 
                                 name="roll_no" 
                                 className="form-input" 
                                 value={formData.roll_no}
                                 onChange={handleChange}
-                                disabled={user.role === 'admin'}
-                                placeholder="Student Roll Number"
+                                placeholder={user.role === 'admin' ? "e.g. System Administrator" : "Student Roll Number"}
                             />
                         </div>
                         <div className="form-group">
@@ -103,18 +106,19 @@ const Settings = () => {
                         </div>
                     </div>
 
-                    {user.role === 'student' && (
-                        <div className="grid-2">
-                            <div className="form-group">
-                                <label className="form-label">Department</label>
-                                <input 
-                                    type="text" 
-                                    name="dept" 
-                                    className="form-input" 
-                                    value={formData.dept}
-                                    onChange={handleChange}
-                                />
-                            </div>
+                    <div className="grid-2">
+                        <div className="form-group">
+                            <label className="form-label">Department</label>
+                            <input 
+                                type="text" 
+                                name="dept" 
+                                className="form-input" 
+                                value={formData.dept}
+                                onChange={handleChange}
+                                placeholder={user.role === 'admin' ? "e.g. Administration" : "e.g. Computer Science"}
+                            />
+                        </div>
+                        {user.role === 'student' && (
                             <div className="form-group">
                                 <label className="form-label">Semester</label>
                                 <input 
@@ -125,8 +129,8 @@ const Settings = () => {
                                     onChange={handleChange}
                                 />
                             </div>
-                        </div>
-                    )}
+                        )}
+                    </div>
 
                     <div className="separator" style={{ margin: '30px 0' }}></div>
 

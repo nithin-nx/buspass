@@ -18,7 +18,6 @@ const Sidebar = () => {
             { path: '/applications', icon: '📝', label: 'Applications' },
             { path: '/routes', icon: '🛣️', label: 'Manage Routes' },
             { path: '/users', icon: '👥', label: 'Manage Users' },
-            { path: '/verify', icon: '🔍', label: 'Verify Pass' },
             { path: '/settings', icon: '⚙️', label: 'Settings' },
         ],
         student: [
@@ -37,8 +36,11 @@ const Sidebar = () => {
     return (
         <div className="sidebar">
             <div className="sidebar-logo">
-                <div className="logo-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <div className="logo-icon" style={{ 
+                    background: 'var(--bg-gradient)', padding: '10px', borderRadius: '12px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white'
+                }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M4 17h1" />
                         <path d="M8 17h8" />
                         <path d="M19 17h1" />
@@ -52,7 +54,7 @@ const Sidebar = () => {
                         <path d="M2 11h20" />
                     </svg>
                 </div>
-                <div className="logo-text">BusID<span>+</span></div>
+                <div className="logo-text" style={{ fontSize: '22px', fontWeight: '800', color: '#0d3270' }}>BusID<span style={{ color: 'var(--primary)' }}>+</span></div>
             </div>
             <nav className="nav-section">
                 {items.map(item => (

@@ -40,6 +40,7 @@ const Applications = () => {
                     <table>
                         <thead>
                             <tr>
+                                <th>Photo</th>
                                 <th>Student</th>
                                 <th>Roll No / Dept</th>
                                 <th>Route</th>
@@ -51,6 +52,23 @@ const Applications = () => {
                         <tbody>
                             {apps.map(app => (
                                 <tr key={app.id}>
+                                    <td>
+                                        <div style={{ 
+                                            width: '50px', height: '60px', background: '#f1f5f9', 
+                                            borderRadius: '6px', overflow: 'hidden', border: '1px solid #e2e8f0'
+                                        }}>
+                                            {app.photo_url ? (
+                                                <img 
+                                                    src={`http://localhost:5050${app.photo_url}`} 
+                                                    alt="Student" 
+                                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                    onClick={() => window.open(`http://localhost:5050${app.photo_url}`, '_blank')}
+                                                />
+                                            ) : (
+                                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: '20px' }}>👤</div>
+                                            )}
+                                        </div>
+                                    </td>
                                     <td>
                                         <div style={{ fontWeight: 600 }}>{app.student_name}</div>
                                         <div style={{ fontSize: '12px', color: '#666' }}>{app.id}</div>

@@ -20,13 +20,34 @@ const Topbar = () => {
 
     return (
         <div className="topbar">
-            <div className="topbar-title">BusID+ Portal</div>
+            <div className="topbar-title">BusID<span style={{ color: 'var(--primary)' }}>+</span> Portal</div>
             <div className="topbar-actions">
-                <div className="icon-btn" style={{ position: 'relative', border: 'none', background: 'none' }}>
-                    🔔{notifCount > 0 && <div className="notif-dot"></div>}
+                <div className="icon-btn" style={{ 
+                    position: 'relative', border: '1px solid var(--border)', background: 'white',
+                    padding: '10px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center'
+                }}>
+                    <span style={{ fontSize: '18px' }}>🔔</span>
+                    {notifCount > 0 && <div className="notif-dot" style={{ 
+                        position: 'absolute', top: '8px', right: '8px', 
+                        width: '10px', height: '10px', background: 'var(--danger)', 
+                        borderRadius: '50%', border: '2px solid white'
+                    }}></div>}
                 </div>
-                <div className="user-profile-sm" style={{ fontWeight: 600 }}>
-                    {user.name} ({user.role})
+                <div className="user-profile-sm" style={{ 
+                    display: 'flex', alignItems: 'center', gap: '12px', 
+                    padding: '8px 16px', background: '#f8fafc', borderRadius: '14px', border: '1px solid var(--border)'
+                }}>
+                    <div style={{ 
+                        width: '32px', height: '32px', background: 'var(--bg-gradient)', 
+                        borderRadius: '10px', display: 'flex', alignItems: 'center', 
+                        justifyContent: 'center', color: 'white', fontWeight: '800', fontSize: '13px'
+                    }}>
+                        {user.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                        <div style={{ fontWeight: 700, fontSize: '14px', color: '#1e293b' }}>{user.name}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>{user.role}</div>
+                    </div>
                 </div>
             </div>
         </div>

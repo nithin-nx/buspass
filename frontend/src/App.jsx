@@ -13,6 +13,8 @@ import ManageRoutes from './pages/ManageRoutes';
 import ManageUsers from './pages/ManageUsers';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
+import Landing from './pages/Landing';
+import PublicVerify from './pages/PublicVerify';
 import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
 import './index.css';
@@ -29,9 +31,11 @@ function App() {
         <AuthProvider>
             <Router>
                 <Routes>
+                    <Route path="/" element={<Landing />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
                     <Route path="/register-admin" element={<RegisterAdmin />} />
+                    <Route path="/verify-pass/:passId" element={<PublicVerify />} />
                     <Route 
                         path="/*" 
                         element={
@@ -59,7 +63,6 @@ function App() {
                             </ProtectedRoute>
                         } 
                     />
-                    <Route path="/" element={<Navigate to="/dashboard" />} />
                 </Routes>
             </Router>
         </AuthProvider>

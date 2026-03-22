@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
 
 const Login = () => {
+    const [searchParams] = useSearchParams();
+    const role = searchParams.get('role') || 'student'; // Default to student if not specified
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -14,7 +16,7 @@ const Login = () => {
         e.preventDefault();
         setError('');
         try {
-            const res = await api.post('/auth/login', { email, password });
+            const res = await api.post('/auth/login', { email, password, role });
             if (res.data.success) {
                 login(res.data.user);
                 navigate('/dashboard');
@@ -25,13 +27,13 @@ const Login = () => {
     };
 
     return (
-        <div className="auth-page">
-            <div className="auth-card">
+        <div className="auth-page" style={{ background: 'var(--bg-gradient)' }}>
+            <div className="auth-card" style={{ backdropFilter: 'blur(10px)', border: '1px solid var(--glass-border)' }}>
                 <div className="auth-logo">
                     <div style={{ 
-                        width: '70px', height: '70px', background: 'var(--primary)', color: 'white', 
-                        borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                        margin: '0 auto 20px', boxShadow: '0 8px 16px rgba(0, 86, 179, 0.2)'
+                        width: '70px', height: '70px', background: 'white', color: '#0d3270', 
+                        borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                        margin: '0 auto 20px', boxShadow: '0 8px 16px rgba(0,0,0,0.1)'
                     }}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M4 17h1" />
@@ -47,19 +49,26 @@ const Login = () => {
                             <path d="M2 11h20" />
                         </svg>
                     </div>
-                    <h2 className="auth-title">BusID+ Portal</h2>
-                    <p style={{ color: 'var(--text-muted)', marginTop: '8px' }}>Manage your transit identity</p>
+                    <div className="badge badge-primary" style={{ display: 'inline-block', marginBottom: '12px', padding: '6px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', background: 'var(--primary)', color: 'white' }}>
+                        {role} PORTAL
+                    </div>
+                    <h2 className="auth-title" style={{ color: 'var(--primary)' }}>BusID Login</h2>
+                    <p style={{ color: 'var(--text-muted)', marginTop: '8px', fontSize: '14px' }}>
+                        {role === 'admin' 
+                            ? 'Enter administrative credentials to manage the system.' 
+                            : 'Sign in to your student account to manage your bus pass.'}
+                    </p>
                 </div>
 
-                {error && <div className="alert alert-danger">{error}</div>}
+                {error && <div className="alert alert-danger" style={{ textAlign: 'center' }}>{error}</div>}
 
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit} className="mt-4">
                     <div className="form-group">
                         <label className="form-label">Email Address</label>
                         <input 
                             type="email" 
                             className="form-input" 
-                            placeholder="your.email@college.edu" 
+                            placeholder={role === 'admin' ? "admin@college.edu" : "your.email@college.edu"}
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required 
@@ -76,21 +85,27 @@ const Login = () => {
                             required 
                         />
                     </div>
-                    <button type="submit" className="btn btn-primary w-full" style={{ padding: '14px' }}>Sign In</button>
+                    <button type="submit" className="btn btn-primary w-full" style={{ padding: '14px', borderRadius: '12px' }}>
+                        Sign In as {role.charAt(0).toUpperCase() + role.slice(1)}
+                    </button>
                 </form>
 
-                <div className="separator" style={{ margin: '32px 0' }}></div>
-                
-                <div className="text-center">
-                    <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '16px' }}>Need a new account?</p>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        <Link to="/register" className="btn btn-secondary w-full" style={{ textDecoration: 'none' }}>
-                            Register Student Account
-                        </Link>
-                        <Link to="/register-admin" className="btn btn-outline-secondary w-full" style={{ textDecoration: 'none' }}>
-                            Admin Registration
-                        </Link>
-                    </div>
+                {role === 'student' && (
+                    <>
+                        <div className="separator" style={{ margin: '32px 0' }}></div>
+                        <div className="text-center">
+                            <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '16px' }}>New student? Register for an account.</p>
+                            <Link to="/register" className="btn btn-secondary w-full" style={{ textDecoration: 'none', borderRadius: '12px' }}>
+                                Create Student Account
+                            </Link>
+                        </div>
+                    </>
+                )}
+
+                <div style={{ marginTop: '24px', textAlign: 'center' }}>
+                    <Link to="/" style={{ fontSize: '14px', color: 'var(--primary)', textDecoration: 'none', fontWeight: '500' }}>
+                        ← Back to Home
+                    </Link>
                 </div>
             </div>
         </div>

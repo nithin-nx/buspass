@@ -80,6 +80,24 @@ const ManageRoutes = () => {
                                     <td><div style={{ fontSize: '12px', color: '#666' }}>{route.stops}</div></td>
                                     <td><div className="badge badge-success" style={{ backgroundColor: '#e7f1ff', color: '#0056b3' }}>₹{route.fare}</div></td>
                                     <td>{route.distance}</td>
+                                    <td>
+                                        <button 
+                                            className="btn btn-secondary" 
+                                            style={{ padding: '6px 12px', fontSize: '12px', color: '#dc3545', border: '1px solid #ffccd1' }}
+                                            onClick={async () => {
+                                                if(window.confirm(`Are you sure you want to delete route ${route.name}?`)) {
+                                                    try {
+                                                        await api.delete(`/routes/${route.id}`);
+                                                        fetchRoutes();
+                                                    } catch (err) {
+                                                        alert(err.response?.data?.message || 'Failed to delete route');
+                                                    }
+                                                }
+                                            }}
+                                        >
+                                            Delete
+                                        </button>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>

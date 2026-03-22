@@ -6,7 +6,7 @@ const Landing = () => {
     return (
         <div className="landing-container">
             <div className="landing-overlay"></div>
-            
+
             <header className="landing-header">
                 <div className="college-logo">
                     <div className="logo-box">
@@ -25,7 +25,7 @@ const Landing = () => {
                         </svg>
                     </div>
                 </div>
-                <p className="college-name">GOVERNMENT ENGINEERING COLLEGE · THRISSUR</p>
+                <p className="college-name">GOVERNMENT ENGINEERING COLLEGE IDUKKI</p>
             </header>
 
             <main className="landing-main">

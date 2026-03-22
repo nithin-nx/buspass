@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import api from '../utils/api';
+import { supabase } from '../supabaseClient';
 
 const RegisterAdmin = () => {
     const [formData, setFormData] = useState({
@@ -29,13 +29,28 @@ const RegisterAdmin = () => {
         };
 
         try {
-            const res = await api.post('/auth/register', userData);
-            if (res.data.success) {
-                setSuccess('Admin registration successful! Redirecting to login...');
-                setTimeout(() => navigate('/login'), 2000);
+            // Check if email exists
+            const { data: existing } = await supabase
+                .from('users')
+                .select('id')
+                .eq('email', formData.email);
+
+            if (existing && existing.length > 0) {
+                setError('Email already registered');
+                return;
             }
+
+            const { error: insertError } = await supabase
+                .from('users')
+                .insert([userData]);
+
+            if (insertError) throw insertError;
+
+            setSuccess('Admin registration successful! Redirecting to login...');
+            setTimeout(() => navigate('/login'), 2000);
         } catch (err) {
-            setError(err.response?.data?.message || 'Registration failed');
+            console.error('Admin Registration error:', err);
+            setError('Registration failed: ' + err.message);
         }
     };
 

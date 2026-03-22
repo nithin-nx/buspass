@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import api from '../utils/api';
+import { supabase } from '../supabaseClient';
 
 const Register = () => {
     const [formData, setFormData] = useState({
@@ -32,13 +32,30 @@ const Register = () => {
         };
 
         try {
-            const res = await api.post('/auth/register', userData);
-            if (res.data.success) {
-                setSuccess('Registration successful! Redirecting to login...');
-                setTimeout(() => navigate('/login'), 2000);
+            // Check if email exists
+            const { data: existing, error: fetchError } = await supabase
+                .from('users')
+                .select('id')
+                .eq('email', formData.email);
+
+            if (fetchError) throw fetchError;
+            if (existing && existing.length > 0) {
+                setError('Email already registered');
+                return;
             }
+
+            // Insert new user
+            const { error: insertError } = await supabase
+                .from('users')
+                .insert([userData]);
+
+            if (insertError) throw insertError;
+
+            setSuccess('Registration successful! Redirecting to login...');
+            setTimeout(() => navigate('/login'), 2000);
         } catch (err) {
-            setError(err.response?.data?.message || 'Registration failed');
+            console.error('Registration error:', err);
+            setError('Registration failed: ' + (err.message || 'Unknown error'));
         }
     };
 
@@ -80,7 +97,7 @@ const Register = () => {
                             <input type="password" name="password" className="form-input" placeholder="••••••••" onChange={handleChange} required />
                         </div>
                         <div className="form-group">
-                            <label className="form-label">Roll Number</label>
+                            <label className="form-label">Registration Number</label>
                             <input type="text" name="roll_no" className="form-input" placeholder="e.g. 21CS042" onChange={handleChange} required />
                         </div>
                     </div>

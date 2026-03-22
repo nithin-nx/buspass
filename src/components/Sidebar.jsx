@@ -8,8 +8,8 @@ const Sidebar = () => {
     const location = useLocation();
 
     const handleLogout = () => {
-        logout();
-        navigate('/login');
+        localStorage.removeItem('busid_user');
+        window.location.href = '/';
     };
 
     const navItems = {
@@ -17,7 +17,7 @@ const Sidebar = () => {
             { path: '/dashboard', icon: '📊', label: 'Dashboard' },
             { path: '/applications', icon: '📝', label: 'Applications' },
             { path: '/routes', icon: '🛣️', label: 'Manage Routes' },
-            { path: '/users', icon: '👥', label: 'Manage Users' },
+            { path: '/users', icon: '🎓', label: 'Approved Students' },
             { path: '/settings', icon: '⚙️', label: 'Settings' },
         ],
         student: [

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import api from '../utils/api';
+import { supabase } from '../supabaseClient';
 
 const Login = () => {
     const [searchParams] = useSearchParams();
@@ -15,14 +15,61 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        try {
-            const res = await api.post('/auth/login', { email, password, role });
-            if (res.data.success) {
-                login(res.data.user);
-                navigate('/dashboard');
+
+        // Handle Static Admin Login (as defined in previous backend)
+        const ADMIN_EMAIL = 'www.nithinnibin@gmail.com';
+        const ADMIN_PASS = 'nithin@2005';
+
+        if (email === ADMIN_EMAIL && password === ADMIN_PASS) {
+            if (role && role !== 'admin') {
+                setError('This account is for Administrators only.');
+                return;
             }
+            
+            // Try fetching from DB to get latest name/avatar
+            const { data: dbAdmin } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', 'ADMIN_01')
+                .single();
+
+            const adminUser = dbAdmin || { 
+                id: 'ADMIN_01', 
+                name: 'Nithin N', 
+                email: ADMIN_EMAIL, 
+                role: 'admin',
+                dept: 'ADMINISTRATION'
+            };
+            
+            login(adminUser);
+            navigate('/dashboard');
+            return;
+        }
+
+        try {
+            const { data: user, error: fetchError } = await supabase
+                .from('users')
+                .select('*')
+                .eq('email', email)
+                .eq('password', password)
+                .single();
+
+            if (fetchError || !user) {
+                setError('Invalid email or password');
+                return;
+            }
+
+            // Role Separation Check
+            if (role && user.role !== role) {
+                setError(`Invalid credentials for ${role} portal.`);
+                return;
+            }
+
+            login(user);
+            navigate('/dashboard');
         } catch (err) {
-            setError(err.response?.data?.message || 'Login failed');
+            console.error('Login error:', err);
+            setError('Login failed. Please check your connection or credentials.');
         }
     };
 
@@ -62,7 +109,7 @@ const Login = () => {
 
                 {error && <div className="alert alert-danger" style={{ textAlign: 'center' }}>{error}</div>}
 
-                <form onSubmit={handleSubmit} className="mt-4">
+                <form onSubmit={handleSubmit} className="mt-4" autoComplete="off">
                     <div className="form-group">
                         <label className="form-label">Email Address</label>
                         <input 
@@ -72,6 +119,7 @@ const Login = () => {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required 
+                            autoComplete="off"
                         />
                     </div>
                     <div className="form-group">
@@ -83,6 +131,7 @@ const Login = () => {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required 
+                            autoComplete="off"
                         />
                     </div>
                     <button type="submit" className="btn btn-primary w-full" style={{ padding: '14px', borderRadius: '12px' }}>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import api from '../utils/api';
+import { supabase } from '../supabaseClient';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
 import { Bar, Pie } from 'react-chartjs-2';
 
@@ -18,10 +18,42 @@ const Dashboard = () => {
 
     const fetchAnalytics = async () => {
         try {
-            const res = await api.get('/admin/analytics');
-            setAnalytics(res.data);
+            const [
+                { count: totalApps },
+                { count: activePasses },
+                { data: revenueData },
+                { data: routeData }
+            ] = await Promise.all([
+                supabase.from('applications').select('*', { count: 'exact', head: true }),
+                supabase.from('passes').select('*', { count: 'exact', head: true }).eq('status', 'active'),
+                supabase.from('applications').select('amount').eq('status', 'approved'),
+                supabase.from('applications').select('route_id, routes(name)').eq('status', 'approved')
+            ]);
+
+            const totalRevenue = revenueData.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+
+            // Calculate Route Distribution
+            const distributionMap = {};
+            routeData.forEach(item => {
+                const routeName = item.routes?.name || item.route_id || 'Unknown';
+                distributionMap[routeName] = (distributionMap[routeName] || 0) + 1;
+            });
+
+            const routeDistribution = Object.entries(distributionMap).map(([name, count]) => ({
+                name,
+                count
+            }));
+
+            setAnalytics({
+                stats: {
+                    totalApplications: totalApps,
+                    activePasses: activePasses,
+                    totalRevenue: totalRevenue
+                },
+                routeDistribution
+            });
         } catch (err) {
-            console.error('Failed to fetch analytics');
+            console.error('Failed to fetch analytics:', err);
         }
     };
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import api from '../utils/api';
+import { supabase } from '../supabaseClient';
 import { Html5Qrcode } from "html5-qrcode";
 
 const Verify = () => {
@@ -71,12 +71,48 @@ const Verify = () => {
         setLoading(true);
         setResult(null);
         try {
-            const res = await api.post('/passes/scan', { passId: targetId });
-            if (res.data.success) {
-                setResult({ success: true, data: res.data.pass, message: res.data.message });
+            const { data: pass, error } = await supabase
+                .from('passes')
+                .select('*')
+                .eq('id', targetId)
+                .single();
+
+            if (error || !pass) {
+                setResult({ success: false, message: 'Pass not found or invalid ID.' });
+                
+                // Log failure
+                await supabase.from('verify_logs').insert([{
+                    pass_id: targetId,
+                    result: 'fail',
+                    scanned_by: 'Staff'
+                }]);
+            } else {
+                // Check if active and not expired
+                const isExpired = new Date(pass.valid_to) < new Date();
+                
+                if (pass.status !== 'active' || isExpired) {
+                    const msg = isExpired ? 'Pass has expired.' : 'Pass is inactive.';
+                    setResult({ success: false, message: msg });
+                    
+                    await supabase.from('verify_logs').insert([{
+                        pass_id: targetId,
+                        result: 'fail',
+                        scanned_by: 'Staff'
+                    }]);
+                } else {
+                    setResult({ success: true, data: pass, message: 'VERIFIED SUCCESSFULLY' });
+                    
+                    // Log success
+                    await supabase.from('verify_logs').insert([{
+                        pass_id: targetId,
+                        result: 'pass',
+                        scanned_by: 'Staff'
+                    }]);
+                }
             }
         } catch (err) {
-            setResult({ success: false, message: err.response?.data?.message || 'Verification failed.' });
+            console.error('Verify error:', err);
+            setResult({ success: false, message: 'Verification process failed.' });
         }
         setLoading(false);
     };

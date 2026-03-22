@@ -10,7 +10,7 @@ import Verify from './pages/Verify';
 import Register from './pages/Register';
 import RegisterAdmin from './pages/RegisterAdmin';
 import ManageRoutes from './pages/ManageRoutes';
-import ManageUsers from './pages/ManageUsers';
+import ApprovedStudents from './pages/ApprovedStudents';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Landing from './pages/Landing';
@@ -50,7 +50,7 @@ function App() {
                                                 <Route path="/apply" element={<Apply />} />
                                                 <Route path="/applications" element={<Applications />} />
                                                 <Route path="/routes" element={<ManageRoutes />} />
-                                                <Route path="/users" element={<ManageUsers />} />
+                                                <Route path="/users" element={<ApprovedStudents />} />
                                                 <Route path="/profile" element={<Profile />} />
                                                 <Route path="/settings" element={<Settings />} />
                                                 <Route path="/passes" element={<Passes />} />

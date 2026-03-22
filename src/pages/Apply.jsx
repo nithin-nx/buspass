@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import api from '../utils/api';
+import { supabase } from '../supabaseClient';
 
 const Apply = () => {
     const { user } = useAuth();
@@ -16,26 +16,33 @@ const Apply = () => {
 
     const [hasActivePass, setHasActivePass] = useState(false);
     const [isPending, setIsPending] = useState(false);
+    const [submitted, setSubmitted] = useState(false);
 
     useEffect(() => {
         const checkStatus = async () => {
             try {
-                const routesRes = await api.get('/routes');
-                setRoutes(routesRes.data);
+                const { data: routesData } = await supabase.from('routes').select('*');
+                setRoutes(routesData || []);
 
-                const passesRes = await api.get(`/passes/${user.id}`);
-                const active = passesRes.data.some(p => p.status === 'active');
-                setHasActivePass(active);
+                const { data: passesData } = await supabase
+                    .from('passes')
+                    .select('*')
+                    .eq('student_id', user.id)
+                    .eq('status', 'active');
+                setHasActivePass(passesData && passesData.length > 0);
 
-                const appsRes = await api.get('/applications');
-                const pending = appsRes.data.some(a => a.student_id === user.id && a.status === 'pending');
-                setIsPending(pending);
+                const { data: appsData } = await supabase
+                    .from('applications')
+                    .select('*')
+                    .eq('student_id', user.id)
+                    .eq('status', 'pending');
+                setIsPending(appsData && appsData.length > 0);
             } catch (err) {
-                console.error('Status check failed');
+                console.error('Status check failed:', err);
             }
         };
-        checkStatus();
-    }, [user.id]);
+        if (user?.id) checkStatus();
+    }, [user?.id]);
 
     const handlePhotoChange = (e) => {
         const file = e.target.files[0];
@@ -47,31 +54,77 @@ const Apply = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setStatus('Submitting...');
         const selectedRoute = routes.find(r => r.id === formData.route_id);
-        
-        const data = new FormData();
-        data.append('student_id', user.id);
-        data.append('student_name', user.name);
-        data.append('roll_no', user.roll_no || 'NOT_SET');
-        data.append('dept', user.dept || 'NOT_SET');
-        data.append('route_id', formData.route_id);
-        data.append('semester', formData.semester);
-        data.append('phone', user.phone || '0000000000');
-        data.append('amount', selectedRoute ? selectedRoute.fare : 0);
-        data.append('receipt_no', formData.receipt_no);
-        if (photo) {
-            data.append('photo', photo);
-        }
+        const appId = 'APP' + Math.random().toString(36).substr(2, 6).toUpperCase();
+        let photo_url = null;
 
         try {
-            await api.post('/applications', data, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
+            // 1. Upload Photo to Supabase Storage
+            if (photo) {
+                const fileExt = photo.name.split('.').pop();
+                const fileName = `${appId}-${Date.now()}.${fileExt}`;
+                const filePath = `applications/${fileName}`;
+
+                const { error: uploadError } = await supabase.storage
+                    .from('applications')
+                    .upload(filePath, photo);
+
+                if (uploadError) throw uploadError;
+
+                const { data: urlData } = supabase.storage
+                    .from('applications')
+                    .getPublicUrl(filePath);
+                
+                photo_url = urlData.publicUrl;
+            }
+
+            // 2. Insert Application Data
+            const { error: insertError } = await supabase
+                .from('applications')
+                .insert([{
+                    id: appId,
+                    student_id: user.id,
+                    student_name: user.name,
+                    roll_no: user.roll_no || 'NOT_SET',
+                    dept: user.dept || 'NOT_SET',
+                    route_id: formData.route_id,
+                    receipt_no: formData.receipt_no,
+                    amount: selectedRoute ? selectedRoute.fare : 0,
+                    semester: formData.semester,
+                    phone: user.phone || '0000000000',
+                    photo_url: photo_url,
+                    status: 'pending'
+                }]);
+
+            if (insertError) throw insertError;
+
+            setSubmitted(true);
             setStatus('Application submitted successfully!');
+            setIsPending(true);
         } catch (err) {
-            setStatus('Failed to submit application: ' + (err.response?.data?.message || err.message));
+            console.error('Submission error:', err);
+            setStatus('Failed to submit application: ' + err.message);
         }
     };
+
+    if (submitted) {
+        return (
+            <div className="page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+                <div className="card" style={{ maxWidth: '500px', textAlign: 'center', padding: '40px' }}>
+                    <div style={{ fontSize: '64px', marginBottom: '20px' }}>✅</div>
+                    <h2 style={{ fontSize: '28px', fontWeight: '800', marginBottom: '16px' }}>Application Success!</h2>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '16px', lineHeight: '1.6' }}>
+                        Your bus pass application has been submitted and is now under review by the administration. 
+                        You will be notified once it is approved.
+                    </p>
+                    <button onClick={() => window.location.reload()} className="btn btn-primary" style={{ marginTop: '30px', padding: '12px 30px' }}>
+                        Done
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="page">
@@ -136,8 +189,17 @@ const Apply = () => {
                                     <input type="text" className="form-input" value={formData.semester} onChange={e => setFormData({...formData, semester: e.target.value})} required />
                                 </div>
                                 <div className="form-group">
-                                    <label className="form-label">Fee Receipt Number</label>
-                                    <input type="text" className="form-input" placeholder="e.g. REC-2024-XXXX" onChange={e => setFormData({...formData, receipt_no: e.target.value})} required />
+                                    <label className="form-label" style={{ fontWeight: '800', fontSize: '1.1em', color: 'var(--primary)' }}>
+                                        Fee Receipt Number
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        className="form-input" 
+                                        style={{ border: '2px solid var(--primary)', fontSize: '1.2em', fontWeight: 'bold' }}
+                                        placeholder="e.g. REC-2024-XXXX" 
+                                        onChange={e => setFormData({...formData, receipt_no: e.target.value})} 
+                                        required 
+                                    />
                                 </div>
                             </div>
                         </div>

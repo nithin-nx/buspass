@@ -2,6 +2,13 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import pool from './db.js';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
@@ -10,6 +17,25 @@ const PORT = process.env.PORT || 5050;
 
 app.use(cors());
 app.use(express.json());
+
+// Create uploads directory if not exists
+const uploadDir = path.join(__dirname, 'uploads/applications');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// Static folder for uploaded files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Multer Config
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, uploadDir),
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'photo-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage: storage });
 
 // Test DB Connection on startup
 (async () => {
@@ -27,12 +53,38 @@ app.use(express.json());
 
 // --- AUTH ROUTES ---
 app.post('/api/auth/login', async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, role } = req.body;
+
+    // Handle Static Admin Login
+    const ADMIN_EMAIL = 'www.nithinnibin@gmail.com';
+    const ADMIN_PASS = 'nithin@2005';
+
+    if (email === ADMIN_EMAIL && password === ADMIN_PASS) {
+        if (role && role !== 'admin') {
+            return res.status(401).json({ success: false, message: 'This account is for Administrators only.' });
+        }
+        return res.json({ 
+            success: true, 
+            user: { 
+                id: 'ADMIN_01', 
+                name: 'Nithin N', 
+                email: ADMIN_EMAIL, 
+                role: 'admin',
+                dept: 'ADMINISTRATION'
+            } 
+        });
+    }
+
     try {
         const [users] = await pool.query('SELECT * FROM users WHERE email = ? AND password = ?', [email, password]);
         if (users.length > 0) {
             const user = users[0];
-            // Return full profile so frontend context is complete
+            
+            // Role Separation Check
+            if (role && user.role !== role) {
+                return res.status(401).json({ success: false, message: `Invalid credentials for ${role} portal.` });
+            }
+
             res.json({ 
                 success: true, 
                 user: { 
@@ -119,6 +171,17 @@ app.post('/api/routes', async (req, res) => {
     }
 });
 
+app.delete('/api/routes/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await pool.query('DELETE FROM routes WHERE id = ?', [id]);
+        res.json({ success: true, message: 'Route deleted successfully' });
+    } catch (error) {
+        console.error('Route deletion error:', error);
+        res.status(500).json({ success: false, message: 'Failed to delete route. It might be in use by applications/passes.' });
+    }
+});
+
 // --- APPLICATION MANAGEMENT ---
 app.get('/api/applications', async (req, res) => {
     try {
@@ -135,18 +198,20 @@ app.get('/api/applications', async (req, res) => {
     }
 });
 
-app.post('/api/applications', async (req, res) => {
+app.post('/api/applications', upload.single('photo'), async (req, res) => {
     const { student_id, student_name, roll_no, dept, route_id, semester, phone, amount, receipt_no } = req.body;
+    const photo_url = req.file ? `/uploads/applications/${req.file.filename}` : null;
     const id = 'APP' + Math.random().toString(36).substr(2, 6).toUpperCase();
+    
     try {
         await pool.query(
-            'INSERT INTO applications (id, student_id, student_name, roll_no, dept, route_id, receipt_no, amount, semester, phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [id, student_id, student_name, roll_no, dept, route_id, receipt_no, amount, semester, phone]
+            'INSERT INTO applications (id, student_id, student_name, roll_no, dept, route_id, receipt_no, amount, semester, phone, photo_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [id, student_id, student_name, roll_no, dept, route_id, receipt_no, amount, semester, phone, photo_url]
         );
         res.json({ success: true, id });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ success: false, message: 'Application failed' });
+        res.status(500).json({ success: false, message: 'Application failed: ' + error.message });
     }
 });
 
@@ -171,8 +236,8 @@ app.patch('/api/applications/:id', async (req, res) => {
                 const app = appRows[0];
                 const passId = 'PASS' + Math.random().toString(36).substr(2, 8).toUpperCase();
                 await pool.query(
-                    'INSERT INTO passes (id, app_id, student_id, student_name, roll_no, dept, route_id, valid_from, valid_to) VALUES (?, ?, ?, ?, ?, ?, ?, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 6 MONTH))',
-                    [passId, id, app.student_id, app.student_name, app.roll_no, app.dept, app.route_id]
+                    'INSERT INTO passes (id, app_id, student_id, student_name, roll_no, dept, route_id, valid_from, valid_to, photo_url) VALUES (?, ?, ?, ?, ?, ?, ?, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 6 MONTH), ?)',
+                    [passId, id, app.student_id, app.student_name, app.roll_no, app.dept, app.route_id, app.photo_url]
                 );
                 
                 // Add notification (Optional, fail-safe)
@@ -205,6 +270,25 @@ app.patch('/api/applications/:id', async (req, res) => {
 });
 
 // --- PASSES ---
+app.get('/api/public/verify/:passId', async (req, res) => {
+    const { passId } = req.params;
+    try {
+        const [rows] = await pool.query(`
+            SELECT p.*, r.name as route_name, r.stops as route_stops 
+            FROM passes p 
+            JOIN routes r ON p.route_id = r.id 
+            WHERE p.id = ?
+        `, [passId]);
+        
+        if (rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Invalid or expired pass' });
+        }
+        res.json(rows[0]);
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Verification failed' });
+    }
+});
+
 app.get('/api/passes', async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT * FROM passes ORDER BY issued_at DESC');

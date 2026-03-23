@@ -62,7 +62,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                             <path d="M2 11h20" />
                         </svg>
                     </div>
-                    <div className="logo-text" style={{ fontSize: '22px', fontWeight: '800', color: '#0d3270' }}>BusID<span style={{ color: 'var(--primary)' }}>+</span></div>
+                    <div className="logo-text" style={{ fontSize: '22px', fontWeight: '800', color: '#0d3270' }}>BusID<span style={{ color: 'var(--primary)' }}></span></div>
                 </div>
                 <nav className="nav-section">
                     {items.map(item => (
